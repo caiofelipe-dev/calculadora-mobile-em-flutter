@@ -1,9 +1,18 @@
 class Memory {
-  String _value = '0';
+
+  String _value = '';
 
   void applyCommand(String command) {
-    _value += command;
+    if(command != 'AC') {
+      _value += command;
+    } else { // Quando o usuário pressionar AC
+      _allClear();
+    }
   }
 
-  String get value => _value;
+  _allClear() {
+    _value = '';
+  }
+
+  String get value => (_value.isEmpty) ? "0" : _value;
 }
