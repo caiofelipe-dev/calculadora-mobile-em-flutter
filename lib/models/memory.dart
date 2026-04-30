@@ -4,11 +4,14 @@ class Memory {
 
   final _buffer = [0.0, 0.0];
   int _bufferIndex = 0; // qual elemento do buffer deverá ser alterado
-  late String? _operation;
+  String? _result;
+  String? _operation;
   String _value = '0'; // Valor que está sendo digitado no campo
   bool _wipeValue = false; // indica se o campo está limpo
   String? _lastCommand;
-
+  String? _currentCommand;
+  
+  /// Executa o comando respectivo ao botão pressionado
   void applyCommand(String command) {
     if(_isReplacingOperation(command)) {
       _operation = command; return;
@@ -16,8 +19,10 @@ class Memory {
 
     if(command != 'AC') {
       if(!operations.contains(command)) {
+        _currentCommand = null;
         _addDigit(command);
       } else { // Se o número digitado for um operador
+        _currentCommand = command;
         _setOperation(command);
       }
     } else { // Quando o usuário pressionar AC
@@ -52,6 +57,7 @@ class Memory {
   }
   /// Concatena o caractere digitado
   void _addDigit(String digit) {
+    _result = null;
     final isDot = digit == ','; // indica se o dígito é uma vírgula ou não
     final wipeValue = (_value == '0' && !isDot) || _wipeValue; // indica se o campo está limpo ou não
 
@@ -70,13 +76,22 @@ class Memory {
   /// Limpa a memória da calculadora
   void _allClear() {
     _value = '0';
-    _buffer.setAll(0, [0.0]);
+    _buffer[0] = _buffer[1] = 0;
     _operation = null;
     _bufferIndex = 0;
     _wipeValue = false;
+    _result = null;
   }
   /// Retorna o resultado da operação entre os elementos do buffer
   double _calculate() {
+    String n1 = _buffer[0].toString().replaceAll('.', ',');
+    String n2 = _buffer[1].toString().replaceAll('.', ',');
+    
+    n1 = n1.endsWith(',0') ? n1.split(',')[0] : n1;
+    n2 = n2.endsWith(',0') ? n2.split(',')[0] : n2;
+
+    _result = "$n1 $_operation $n2 =";
+    
     switch(_operation) {
       case '%': return _buffer[0] % _buffer[1];
       case '/': return _buffer[0] / _buffer[1];
@@ -87,5 +102,20 @@ class Memory {
     }
   }
 
-  String get value => _value;
+  String get value {
+    if(_currentCommand != null) {
+      return "$_value ${_operation ?? ''}"; 
+    }
+    return _value;
+  }
+  String? get buffer {
+    if(_buffer[1] != 0) {
+      String buff = _buffer[0].toString().replaceAll('.', ',');
+      buff = buff.endsWith(',0') ? buff.split(',')[0] : buff;
+      return buff+(_operation != null ? ' $_operation' : '');
+    } else {
+      return _result;
+    }
+  }
+  String? get operation => _operation;
 }
